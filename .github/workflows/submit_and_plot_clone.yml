@@ -9,7 +9,7 @@
 # 
 # For a more minimalist example see https://github.com/microprediction/microactors/blob/main/.github/workflows/submit.yml instead
 
-name: Get fit submit plot and push 17 33 55
+name: Fit at 17 33 55
 
 on:
   schedule:
