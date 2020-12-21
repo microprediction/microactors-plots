@@ -75,10 +75,10 @@ def plot_3d(real, synth, fig_file, columns=None, figsize=(10, 4)):
     
     
 if __name__ == "__main__":
-    mws = [ MicroWriter(write_key=WRITE_KEY) for write_key in WRITE_KEYS ]
+    mws = [ MicroWriter(write_key=write_key) for write_key in WRITE_KEYS ]
     for mw in mws:
         mw.set_repository(REPO)
-    mw0 = mws[0] 
+    mw0 = mws[0] # Doesn't matter which one
     NAMES = [ n for n in mw0.get_stream_names() if 'z2~' in n or 'z3~' in n ]
     for _ in range(5):
         name = random.choice(NAMES)
