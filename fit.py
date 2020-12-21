@@ -9,6 +9,7 @@ import warnings
 warnings.filterwarnings('ignore')
 from copulas.multivariate import VineCopula
 import pandas as pd
+from copulas.visualization import scatter_2d, scatter_3d
 
 
 # 1. Grab the Github secrets
@@ -23,16 +24,18 @@ for write_key in WRITE_KEYS:
     print(animal)
     
     
-# 2. Pick a copulas
+# 2. Pick a copula
 VINES = ['center','regular','direct']. # See https://sdv.dev/Copulas/tutorials/03_Multivariate_Distributions.html#Vine-Copulas
-VINE_TYPE = VINES[0]                        # <----- Maybe you want to try something else
+VINE_TYPE = random.choice(VINES)       # Perhaps you want to fix this choice. This way we get lots of plots. 
 
 # 3. (Optional) Set the URL of your repo so that others can learn from it     
 REPO = 'https://github.com/microprediction/microactors-plots/blob/master/fit.py'  # <--- Change your username
 
+PLOTS_PATH = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + 'gallery'
+
 
 # 4. Create your fitting function 
-def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None):
+def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None, fig_file=None ):
     """ Example of fitting a copula function, and sampling
     
            lagged_zvalues: [ [z1,z2,z3] ]  Data with roughly N(0,1) margins
@@ -50,14 +53,27 @@ def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None):
     # then you might want to use mw.get_lagged_copulas(name=name, count= 5000) instead
     
 
-    df = pd.DataFrame(data=lagged_zvalues)
+    real = pd.DataFrame(data=lagged_zvalues)
     if copula is None:
         copula = VineCopula(VINE_TYPE) 
-    copula.fit(df)
+    copula.fit(real)
     synthetic = copula.sample(4*num)  # Again, see remarks above
-    return synthetic.values.tolist()
+    synth = synthetic.values.tolist()
+    dim = len(synth[0])
+    if dim==3 and fig_file is not None:
+        plot_3d(real=real, synth=synth, fig_file=fig_file)
+    return synth
 
-
+def plot_3d(real, synth, fig_file, columns=None, figsize=(10, 4)):
+    """ Create and store comparision plot """
+    columns = columns or real.columns
+    fig = plt.figure(figsize=figsize)
+    scatter_3d(real[columns], fig=fig, title='Real Data', position=121)
+    scatter_3d(synth[columns], fig=fig, title='Synthetic Data', position=122)
+    plt.tight_layout()
+    plt.savefig(fig_file)
+    
+    
 if __name__ == "__main__":
     mw = MicroWriter(write_key=WRITE_KEY)
     mw.set_repository(REPO) # Just polite
@@ -70,7 +86,8 @@ if __name__ == "__main__":
             if len(lagged_zvalues)>20:
                 num = mw.num_predictions
                 four = len(WRITE_KEYS)
-                zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four)
+                fig_file = PLOTS_PATH + os.path.sep + name.replace('.json','')+'_'+str(delay) +'_'+ VINE_TYPE.lower()+'.png'
+                zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four, fig_file=fig_file)
                 pprint((name, delay))
                 try:
                     # Split the samples up amongst the syndicate
