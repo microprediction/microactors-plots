@@ -25,7 +25,7 @@ for write_key in WRITE_KEYS:
     
     
 # 2. Pick a copula
-VINES = ['center','regular','direct']. # See https://sdv.dev/Copulas/tutorials/03_Multivariate_Distributions.html#Vine-Copulas
+VINES = ['center','regular','direct'] # See https://sdv.dev/Copulas/tutorials/03_Multivariate_Distributions.html#Vine-Copulas
 VINE_TYPE = random.choice(VINES)       # Perhaps you want to fix this choice. This way we get lots of plots. 
 
 # 3. (Optional) Set the URL of your repo so that others can learn from it     
