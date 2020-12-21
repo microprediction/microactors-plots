@@ -93,7 +93,7 @@ if __name__ == "__main__":
                     # Split the samples up amongst the syndicate
                     # This would be more effective if the samples were not random :-)
                     responses = list()
-                    for j, write_key = enumerate(WRITE_KEYS)
+                    for j, write_key in enumerate(WRITE_KEYS):
                         zvalues_j = zvalues[j*num:(j+1)*num]
                         assert len(zvalues_j)==num
                         responses.append( mw.submit_zvalues(name=name, zvalues=zvalues_j, delay=delay ) )
