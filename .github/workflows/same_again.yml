@@ -9,14 +9,14 @@
 # 
 # For a more minimalist example see https://github.com/microprediction/microactors/blob/main/.github/workflows/submit.yml instead
 
-name: fit at 15 33 51
+name: Fit at 9 25 43 59
 
 on:
   schedule:
     # How often do you want to fit your model? 
     # Public github accounts get 2000 minutes / month 
     # * is a special character in YAML so you have to quote this string
-    - cron:  '15,33,51 * * * *'
+    - cron:  '9,25,43,59 * * * *'
 
 defaults:
   run:
