@@ -65,8 +65,8 @@ def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None, fig_file=None,
     if copula is None:
         copula = VineCopula(VINE_TYPE) 
     copula.fit(real)
-    print('Fit done')
-    synthetic = copula.sample(4*num)  # Again, see remarks above
+    print('Fit done, now generating samples ...')
+    synthetic = copula.sample(num)  # Again, see remarks above
     print('Sample generated')
     synth = synthetic.values.tolist()
     dim = len(synth[0])
@@ -96,12 +96,16 @@ def scatter_3d(data, columns=None, fig=None, title=None, position=None, labels=N
 
     return ax
 
+
 def plot_3d(real, synth, fig_file, columns=None, figsize=(20, 8), labels=None ):
-    """ Create and store comparision plot """
+    """ Create and store comparison plot """
     columns = columns or real.columns
     fig = plt.figure(figsize=figsize)
-    scatter_3d(real[columns], fig=fig, title='Real Data', position=121, labels=labels)
-    scatter_3d(synth[columns], fig=fig, title='Synthetic Data', position=122, labels=labels)
+    num_synthetic = len(synth.index)
+    some_real = real.iloc[-num_synthetic:]
+    num_real = len(some_real.index)
+    scatter_3d(some_real[columns], fig=fig, title='Real Data ('+str(num_real)+')', position=121, labels=labels)
+    scatter_3d(synth[columns], fig=fig, title='Synthetic Data ('+str(num_synthetic)+')', position=122, labels=labels)
     plt.tight_layout()
     plt.savefig(fig_file)
     
@@ -112,29 +116,34 @@ if __name__ == "__main__":
         mw.set_repository(REPO)
     mw0 = mws[0] # Doesn't matter which one
     NAMES = [ n for n in mw0.get_stream_names() if 'z3~' in n ]
-    for _ in range(5):
+    count = 0
+    num_to_fit = 2
+    while count < num_to_fit:
         name = random.choice(NAMES)
         labels = name.split('~')[1:-1]
         lagged_zvalues = mw0.get_lagged_zvalues(name=name, count=5000)
         if len(lagged_zvalues) > 20:
-            for delay in [ mw0.DELAYS[0], mw0.DELAYS[-1]]:
-                num = mw0.num_predictions
-                four = len(WRITE_KEYS)
-                fig_file = PLOTS_PATH + os.path.sep + name.replace('.json','')+'_'+str(delay) +'_'+ VINE_TYPE.lower()+'.png'
-                pprint((name, delay, len(lagged_zvalues)))
-                zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four, fig_file=fig_file,labels=labels)
-                print('Syndicate submission starting')
-                try:
-                    # Split the samples up amongst the syndicate
-                    # This would be more effective if the samples were not random :-)
-                    responses = list()
+            num = mw0.num_predictions
+            four = len(WRITE_KEYS)
+            fig_file = PLOTS_PATH + os.path.sep + name.replace('.json','')+'_'+ VINE_TYPE.lower()+'.png'
+            pprint((name, len(lagged_zvalues)))
+            zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four, fig_file=fig_file,labels=labels)
+            print('Syndicate submission starting')
+            try:
+                # Split the samples up amongst the syndicate
+                # This would be more effective if the samples were not random :-)
+                # Enter the same samples for all horizons
+                responses = list()
+                for delay in mw0.DELAYS:
                     for j, mw in enumerate(mws):
                         zvalues_j = zvalues[j*num:(j+1)*num]
                         assert len(zvalues_j)==num
                         responses.append( mw.submit_zvalues(name=name, zvalues=zvalues_j, delay=delay ) )
-                    pprint(responses)
-                except Exception as e:
-                    print(e)
-                print('Syndicate submission finished')
+                pprint(np.mean(responses))
+            except Exception as e:
+                print(e)
+            print('Syndicate submission finished')
+            count = count + 1
+            print('Done '+str(count)+' of '+str(num_to_fit))
         else:
             print(name+' history too short ')
