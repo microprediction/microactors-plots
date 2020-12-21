@@ -75,16 +75,17 @@ def plot_3d(real, synth, fig_file, columns=None, figsize=(10, 4)):
     
     
 if __name__ == "__main__":
-    mw = MicroWriter(write_key=WRITE_KEY)
-    mw.set_repository(REPO) # Just polite
-
-    NAMES = [ n for n in mw.get_stream_names() if 'z2~' in n or 'z3~' in n ]
+    mws = [ MicroWriter(write_key=WRITE_KEY) for write_key in WRITE_KEYS ]
+    for mw in mws:
+        mw.set_repository(REPO)
+    mw0 = mws[0] 
+    NAMES = [ n for n in mw0.get_stream_names() if 'z2~' in n or 'z3~' in n ]
     for _ in range(5):
         name = random.choice(NAMES)
-        for delay in [ mw.DELAYS[0], mw.DELAYS[-1]]:
-            lagged_zvalues = mw.get_lagged_zvalues(name=name, count= 5000)
+        for delay in [ mw0.DELAYS[0], mw0.DELAYS[-1]]:
+            lagged_zvalues = mw0.get_lagged_zvalues(name=name, count= 5000)
             if len(lagged_zvalues)>20:
-                num = mw.num_predictions
+                num = mw0.num_predictions
                 four = len(WRITE_KEYS)
                 fig_file = PLOTS_PATH + os.path.sep + name.replace('.json','')+'_'+str(delay) +'_'+ VINE_TYPE.lower()+'.png'
                 zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four, fig_file=fig_file)
@@ -93,7 +94,7 @@ if __name__ == "__main__":
                     # Split the samples up amongst the syndicate
                     # This would be more effective if the samples were not random :-)
                     responses = list()
-                    for j, write_key in enumerate(WRITE_KEYS):
+                    for j, mw in enumerate(mws):
                         zvalues_j = zvalues[j*num:(j+1)*num]
                         assert len(zvalues_j)==num
                         responses.append( mw.submit_zvalues(name=name, zvalues=zvalues_j, delay=delay ) )
