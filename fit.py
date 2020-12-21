@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings('ignore')
 from copulas.multivariate import VineCopula
 import pandas as pd
-from copulas.visualization import scatter_2d, scatter_3d
+from copulas.visualization import scatter_2d
 import os
 
 
@@ -43,12 +43,13 @@ PLOTS_PATH = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + 'galler
 
 
 # 4. Create your fitting function 
-def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None, fig_file=None ):
+def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None, fig_file=None, labels=None ):
     """ Example of fitting a copula function, and sampling
     
            lagged_zvalues: [ [z1,z2,z3] ]  Data with roughly N(0,1) margins
            copula : 
            returns: [ [z1, z2, z3] ]  representative sample
+           labels: [str]  axis labels
            
     """
     # This is the part where there's plenty of room for improvement 
@@ -71,15 +72,36 @@ def fit_and_sample(lagged_zvalues:[[float]],num:int, copula=None, fig_file=None 
     dim = len(synth[0])
     if dim==3 and fig_file is not None:
         print('Saving to '+fig_file)
-        plot_3d(real=real, synth=synthetic, fig_file=fig_file)
+        plot_3d(real=real, synth=synthetic, fig_file=fig_file, labels=labels)
     return synth
 
-def plot_3d(real, synth, fig_file, columns=None, figsize=(10, 4)):
+
+def scatter_3d(data, columns=None, fig=None, title=None, position=None, labels=None):
+    """Plot 3 dimensional data in a scatter plot."""
+    fig = fig or plt.figure()
+    position = position or 111
+
+    ax = fig.add_subplot(position, projection='3d')
+    ax.scatter(*(
+        data[column]
+        for column in columns or data.columns
+    ))
+    if title:
+        ax.set_title(title)
+        ax.title.set_position([.5, 1.05])
+    if labels:
+        ax.set_xlabel(labels[0])
+        ax.set_ylabel(labels[1])
+        ax.set_zlabel(labels[2])
+
+    return ax
+
+def plot_3d(real, synth, fig_file, columns=None, figsize=(20, 8), labels=None ):
     """ Create and store comparision plot """
     columns = columns or real.columns
     fig = plt.figure(figsize=figsize)
-    scatter_3d(real[columns], fig=fig, title='Real Data', position=121)
-    scatter_3d(synth[columns], fig=fig, title='Synthetic Data', position=122)
+    scatter_3d(real[columns], fig=fig, title='Real Data', position=121, labels=labels)
+    scatter_3d(synth[columns], fig=fig, title='Synthetic Data', position=122, labels=labels)
     plt.tight_layout()
     plt.savefig(fig_file)
     
@@ -89,9 +111,10 @@ if __name__ == "__main__":
     for mw in mws:
         mw.set_repository(REPO)
     mw0 = mws[0] # Doesn't matter which one
-    NAMES = [ n for n in mw0.get_stream_names() if 'z2~' in n or 'z3~' in n ]
+    NAMES = [ n for n in mw0.get_stream_names() if 'z3~' in n ]
     for _ in range(5):
         name = random.choice(NAMES)
+        labels = name.split('~')[1:-1]
         lagged_zvalues = mw0.get_lagged_zvalues(name=name, count=5000)
         if len(lagged_zvalues) > 20:
             for delay in [ mw0.DELAYS[0], mw0.DELAYS[-1]]:
@@ -99,7 +122,7 @@ if __name__ == "__main__":
                 four = len(WRITE_KEYS)
                 fig_file = PLOTS_PATH + os.path.sep + name.replace('.json','')+'_'+str(delay) +'_'+ VINE_TYPE.lower()+'.png'
                 pprint((name, delay, len(lagged_zvalues)))
-                zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four, fig_file=fig_file)
+                zvalues = fit_and_sample(lagged_zvalues=lagged_zvalues, num=num*four, fig_file=fig_file,labels=labels)
                 print('Syndicate submission starting')
                 try:
                     # Split the samples up amongst the syndicate
