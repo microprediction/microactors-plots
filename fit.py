@@ -146,3 +146,7 @@ if __name__ == "__main__":
             print('Done '+str(count)+' of '+str(num_to_fit))
         else:
             print(name+' history too short ')
+    # Give up if performance is bad
+    for mw in mws:
+        mw.cancel_worst_active(stop_loss=25,num=1)
+
