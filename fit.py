@@ -13,7 +13,7 @@ from copulas.visualization import scatter_2d
 import os
 
 try:
-    from config_private import NOTHING
+    from set_env_private import NOTHING
 except ImportError:
     pass
 
