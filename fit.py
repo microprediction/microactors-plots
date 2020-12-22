@@ -2,7 +2,7 @@ from microprediction import MicroWriter
 import numpy as np
 from pprint import pprint
 import matplotlib.pyplot as plt
-import random 
+import random
 import time
 from pprint import pprint
 import warnings
@@ -12,11 +12,10 @@ import pandas as pd
 from copulas.visualization import scatter_2d
 import os
 
-
-os.environ['WRITE_KEY_1']='baf7e5692237cc98b10dd9646b464bf0'
-os.environ['WRITE_KEY_2']='f8ca8202168445c9f42b8618a06bbe1a'
-os.environ['WRITE_KEY_3']='028f5b439d75ac1ca02c59ed63e12b7d'
-os.environ['WRITE_KEY_4']='a6c968a9b1f16693405353231e8f1488'
+try:
+    from config_private import NOTHING
+except ImportError:
+    pass
 
 
 
@@ -97,7 +96,7 @@ def scatter_3d(data, columns=None, fig=None, title=None, position=None, labels=N
     return ax
 
 
-def plot_3d(real, synth, fig_file, columns=None, figsize=(20, 8), labels=None ):
+def plot_3d(real, synth, fig_file, columns=None, figsize=(16, 6), labels=None ):
     """ Create and store comparison plot """
     columns = columns or real.columns
     fig = plt.figure(figsize=figsize)
