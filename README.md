@@ -1,6 +1,7 @@
 # microactors-plots
 
-Illustrates:
+Does this:
+ - Tests the correlation package
  - Use of syndicate (four write keys)
  - Plots of copulas
  - Check-in 
