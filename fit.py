@@ -21,10 +21,17 @@ except ImportError:
 
 
 # 1. Grab the Github secrets
-# For this script to work you need to create four separate GitHub secrets
-# called WRITE_KEY_1 WRITE_KEY_2 WRITE_KEY_3 and WRITE_KEY_4
-# The idea is that this way you get 900 samples instead of 225
-WRITE_KEYS = [ os.environ.get('WRITE_KEY_'+str(i+1)) for i in range(4) ]
+
+try:
+    # For this script to work you need to create four separate GitHub secrets
+    # called WRITE_KEY_1 WRITE_KEY_2 WRITE_KEY_3 and WRITE_KEY_4
+    # The idea is that this way you get 900 samples instead of 225
+    WRITE_KEYS = [ os.environ.get('WRITE_KEY_'+str(i+1)) for i in range(4) ]
+    assert len(WRITE_KEYS)==4,'Need four write keys to make the syndicate'
+except:
+    # Or one secret called WRITE_KEY or WRITE_KEYS with them comma separated
+    WRITE_KEYS_comma_sep = os.environ.get('WRITE_KEYS') or os.environ.get('WRITE_KEY')
+    WRITE_KEYS = WRITE_KEYS_comma_sep.split(',')
 print('Copula syndicate is firing up.')
 for write_key in WRITE_KEYS:
     animal = MicroWriter.animal_from_key(write_key)  
