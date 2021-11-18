@@ -39,10 +39,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-            python -m pip install --upgrade pip
-            pip instal wheel
-            pip install --upgrade microprediction
-            pip install matplotlib
+            python -m pip3 install --upgrade pip
+            pip3 instal wheel
+            pip3 install --upgrade microprediction
+            pip3 install matplotlib
       - name: Run fit.py using secret WRITE_KEY
         env:
           WRITE_KEY_1: ${{ secrets.WRITE_KEY_1 }}
